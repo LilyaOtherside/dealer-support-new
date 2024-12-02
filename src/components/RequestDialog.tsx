@@ -77,7 +77,10 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     }
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     const formData = new FormData();
     formData.append('file', file);
     
@@ -152,7 +155,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select value={status} onValueChange={setStatus}>
+                <Select value={status} onValueChange={(value: Request['status']) => setStatus(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -165,7 +168,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="priority">Priority</Label>
-                <Select value={priority} onValueChange={setPriority}>
+                <Select value={priority} onValueChange={(value: Request['priority']) => setPriority(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
