@@ -91,7 +91,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
           onUploadProgress: (progress: number) => {
             setUploadProgress(progress);
           }
-        } as FileOptions);
+        } as any);
 
       if (uploadData) {
         const { data: { publicUrl } } = supabase.storage
