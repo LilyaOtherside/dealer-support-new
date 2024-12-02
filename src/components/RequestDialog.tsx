@@ -155,7 +155,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select value={status} onValueChange={(value: string) => setStatus(value as Request['status'])}>
+                <Select value={status} onValueChange={(value: Request['status']) => setStatus(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -168,7 +168,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
               </div>
               <div className="space-y-2">
                 <Label htmlFor="priority">Priority</Label>
-                <Select value={priority} onValueChange={(value: string) => setPriority(value as Request['priority'])}>
+                <Select value={priority} onValueChange={(value: Request['priority']) => setPriority(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
