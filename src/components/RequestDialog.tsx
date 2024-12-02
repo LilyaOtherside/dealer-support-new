@@ -22,28 +22,31 @@ import { Paperclip, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface RequestDialogProps {
-  onCreateRequest: (request: Omit<Request, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  onClose: () => void;
+  onSubmit: (data: Request) => Promise<void>;
+  request?: Request;
 }
 
-export function RequestDialog({ onCreateRequest }: RequestDialogProps) {
+export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('pending');
   const [priority, setPriority] = useState('medium');
-  const [attachments, setAttachments] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{
+    name: string;
+    url: string;
+    type: string;
+    size: number;
+  }>>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (values: any) => {
     try {
-      setIsLoading(true);
-      
       if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
         throw new Error('User not authenticated');
       }
 
-      await onCreateRequest({
+      await onSubmit({
         title: values.title,
         description: values.description,
         status: 'pending',
@@ -53,8 +56,6 @@ export function RequestDialog({ onCreateRequest }: RequestDialogProps) {
     } catch (error) {
       console.error('Error submitting request:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -85,7 +86,7 @@ export function RequestDialog({ onCreateRequest }: RequestDialogProps) {
           .from('request-attachments')
           .getPublicUrl(filePath);
 
-        setAttachments(prev => [...prev, {
+        setUploadedFiles(prev => [...prev, {
           name: file.name,
           url: publicUrl,
           type: file.type,
@@ -99,7 +100,7 @@ export function RequestDialog({ onCreateRequest }: RequestDialogProps) {
   };
 
   const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const formatFileSize = (bytes: number) => {
@@ -111,7 +112,7 @@ export function RequestDialog({ onCreateRequest }: RequestDialogProps) {
   };
 
   return (
-    <Dialog open onOpenChange={() => onClose()}>
+    <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{request ? 'Edit Request' : 'New Request'}</DialogTitle>
@@ -197,9 +198,9 @@ export function RequestDialog({ onCreateRequest }: RequestDialogProps) {
                     ></div>
                   </div>
                 )}
-                {attachments.length > 0 && (
+                {uploadedFiles.length > 0 && (
                   <div className="space-y-2">
-                    {attachments.map((file, index) => (
+                    {uploadedFiles.map((file, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"
@@ -234,12 +235,11 @@ export function RequestDialog({ onCreateRequest }: RequestDialogProps) {
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
+            <Button type="submit">
+              Save
             </Button>
           </DialogFooter>
         </form>

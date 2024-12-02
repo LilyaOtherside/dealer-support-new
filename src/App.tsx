@@ -19,21 +19,7 @@ interface Request {
 // Добавьте типы для Telegram WebApp
 declare global {
   interface Window {
-    Telegram: {
-      WebApp: {
-        ready: () => void;
-        initData: string;
-        initDataUnsafe?: {
-          user?: {
-            id: number;
-            username?: string;
-            first_name?: string;
-            last_name?: string;
-            photo_url?: string;
-          };
-        };
-      };
-    };
+    Telegram: TelegramWebApps;
   }
 }
 
