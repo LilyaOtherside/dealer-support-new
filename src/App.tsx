@@ -6,41 +6,29 @@ import { Moon, Sun } from 'lucide-react';
 import { Button } from './components/ui/button';
 import './globals.css';
 
-interface Request {
-  id: string;
-  title: string;
-  description: string;
-  status: 'pending' | 'in-progress' | 'resolved';
-  priority: 'low' | 'medium' | 'high';
-  created_at: string;
-  updated_at: string;
-}
-
 // Определяем типы для Telegram WebApp
 declare global {
-  interface TelegramWebApp {
-    ready: () => void;
-    expand: () => void;
-    close: () => void;
-    initDataUnsafe: {
-      user?: {
-        id: number;
-        first_name: string;
-        last_name?: string;
-        username?: string;
-        language_code?: string;
-        photo_url?: string;
-      };
-      start_param?: string;
-      auth_date: number;
-      hash: string;
-    };
-    initData: string;
-  }
-
   interface Window {
     Telegram: {
-      WebApp: TelegramWebApp;
+      WebApp: {
+        ready: () => void;
+        expand: () => void;
+        close: () => void;
+        initDataUnsafe: {
+          user?: {
+            id: number;
+            first_name: string;
+            last_name?: string;
+            username?: string;
+            language_code?: string;
+            photo_url?: string;
+          };
+          start_param?: string;
+          auth_date: number;
+          hash: string;
+        };
+        initData: string;
+      }
     }
   }
 }

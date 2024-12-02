@@ -83,15 +83,9 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
 
     const uploadFile = async () => {
       try {
-        const options = {
-          onUploadProgress: (progress: number) => {
-            setUploadProgress(progress);
-          }
-        };
-
         const { data: uploadData } = await supabase.storage
           .from('files')
-          .upload(`${Date.now()}-${file.name}`, file, options);
+          .upload(`${Date.now()}-${file.name}`, file);
 
         if (uploadData) {
           const { data: { publicUrl } } = supabase.storage
@@ -111,6 +105,14 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     };
 
     uploadFile();
+  };
+
+  const handleStatusChange = (value: RequestStatus) => {
+    setStatus(value);
+  };
+
+  const handlePriorityChange = (value: RequestPriority) => {
+    setPriority(value);
   };
 
   const removeAttachment = (index: number) => {
@@ -160,7 +162,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="status">Status</Label>
                 <Select 
                   value={status} 
-                  onValueChange={(value: RequestStatus) => setStatus(value)}
+                  onValueChange={handleStatusChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -176,7 +178,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="priority">Priority</Label>
                 <Select 
                   value={priority} 
-                  onValueChange={(value: RequestPriority) => setPriority(value)}
+                  onValueChange={handlePriorityChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
