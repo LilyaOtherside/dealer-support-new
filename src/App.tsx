@@ -19,7 +19,21 @@ interface Request {
 // Добавьте типы для Telegram WebApp
 declare global {
   interface Window {
-    Telegram: TelegramWebApps;
+    Telegram: {
+      WebApp: {
+        ready: () => void;
+        initData: string;
+        initDataUnsafe?: {
+          user?: {
+            id: number;
+            username?: string;
+            first_name?: string;
+            last_name?: string;
+            photo_url?: string;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -29,7 +43,6 @@ function App() {
   );
   const [user, setUser] = useState<any>(null);
   const [requests, setRequests] = useState<Request[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -66,7 +79,6 @@ function App() {
             };
 
             setUser(userData);
-            setIsAuthenticated(true);
 
             // Сохраняем пользователя в Supabase
             const { error: supabaseError } = await supabase

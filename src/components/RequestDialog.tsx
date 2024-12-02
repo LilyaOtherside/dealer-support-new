@@ -21,6 +21,13 @@ import { Textarea } from './ui/textarea';
 import { Paperclip, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+interface UploadedFile {
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+}
+
 interface RequestDialogProps {
   onClose: () => void;
   onSubmit: (data: Request) => Promise<void>;
@@ -32,12 +39,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('pending');
   const [priority, setPriority] = useState('medium');
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{
-    name: string;
-    url: string;
-    type: string;
-    size: number;
-  }>>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleSubmit = async (values: any) => {
@@ -59,44 +61,32 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const handleFileUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await supabase.storage
+        .from('files')
+        .upload(`${Date.now()}-${file.name}`, formData, {
+          onUploadProgress: (progress: number) => {
+            setUploadProgress(progress);
+          }
+        });
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('files')
+        .getPublicUrl(`${Date.now()}-${file.name}`);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    for (const file of files) {
-      try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `${user.id}/${fileName}`;
-
-        const { data, error } = await supabase.storage
-          .from('request-attachments')
-          .upload(filePath, file, {
-            onUploadProgress: (progress) => {
-              setUploadProgress((progress.loaded / progress.total) * 100);
-            },
-          });
-
-        if (error) throw error;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('request-attachments')
-          .getPublicUrl(filePath);
-
-        setUploadedFiles(prev => [...prev, {
-          name: file.name,
-          url: publicUrl,
-          type: file.type,
-          size: file.size,
-        }]);
-      } catch (error) {
-        console.error('Error uploading file:', error);
-      }
+      setUploadedFiles(prev => [...prev, {
+        name: file.name,
+        url: publicUrl,
+        type: file.type,
+        size: file.size,
+      }]);
+    } catch (error) {
+      console.error('Error uploading file:', error);
     }
-    setUploadProgress(0);
   };
 
   const removeAttachment = (index: number) => {
