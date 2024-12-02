@@ -31,6 +31,9 @@ interface Request {
   updated_at?: string;
 }
 
+type RequestStatus = 'pending' | 'in-progress' | 'resolved';
+type RequestPriority = 'low' | 'medium' | 'high';
+
 interface UploadedFile {
   name: string;
   url: string;
@@ -47,8 +50,8 @@ interface RequestDialogProps {
 export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps) {
   const [title, setTitle] = useState(request?.title || '');
   const [description, setDescription] = useState(request?.description || '');
-  const [status, setStatus] = useState<Request['status']>(request?.status || 'pending');
-  const [priority, setPriority] = useState<Request['priority']>(request?.priority || 'medium');
+  const [status, setStatus] = useState<RequestStatus>(request?.status || 'pending');
+  const [priority, setPriority] = useState<RequestPriority>(request?.priority || 'medium');
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -73,7 +76,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -101,6 +104,14 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     } catch (error) {
       console.error('Error uploading file:', error);
     }
+  };
+
+  const handleStatusChange = (value: string) => {
+    setStatus(value as RequestStatus);
+  };
+
+  const handlePriorityChange = (value: string) => {
+    setPriority(value as RequestPriority);
   };
 
   const removeAttachment = (index: number) => {
@@ -150,7 +161,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="status">Status</Label>
                 <Select 
                   value={status} 
-                  onValueChange={(value) => setStatus(value as Request['status'])}
+                  onValueChange={handleStatusChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -166,7 +177,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="priority">Priority</Label>
                 <Select 
                   value={priority} 
-                  onValueChange={(value) => setPriority(value as Request['priority'])}
+                  onValueChange={handlePriorityChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />

@@ -16,31 +16,29 @@ interface Request {
   updated_at: string;
 }
 
-// Определяем правильный тип для Telegram WebApp
+// Определяем тип для Telegram WebApp
 declare global {
-  interface TelegramWebApps {
-    WebApp: {
-      ready: () => void;
-      expand: () => void;
-      close: () => void;
-      initDataUnsafe: {
-        user?: {
-          id: number;
-          first_name: string;
-          last_name?: string;
-          username?: string;
-          language_code?: string;
-          photo_url?: string;
-        };
-        start_param?: string;
-        auth_date: number;
-      };
-      initData: string;
-    }
-  }
-
   interface Window {
-    Telegram: TelegramWebApps;
+    Telegram: {
+      WebApp: {
+        ready: () => void;
+        expand: () => void;
+        close: () => void;
+        initDataUnsafe: {
+          user?: {
+            id: number;
+            first_name: string;
+            last_name?: string;
+            username?: string;
+            language_code?: string;
+            photo_url?: string;
+          };
+          start_param?: string;
+          auth_date: number;
+        };
+        initData: string;
+      }
+    }
   }
 }
 
