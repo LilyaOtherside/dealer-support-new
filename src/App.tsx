@@ -7,35 +7,35 @@ import { Button } from './components/ui/button';
 import './globals.css';
 
 // Определяем тип для Telegram WebApp
-interface TelegramWebApp {
-  ready: () => void;
-  expand: () => void;
-  close: () => void;
-  initDataUnsafe: {
-    user?: {
-      id: number;
-      first_name: string;
-      last_name?: string;
-      username?: string;
-      language_code?: string;
-      photo_url?: string;
+interface TelegramWebApps {
+  WebApp: {
+    ready: () => void;
+    expand: () => void;
+    close: () => void;
+    initDataUnsafe: {
+      user?: {
+        id: number;
+        first_name: string;
+        last_name?: string;
+        username?: string;
+        language_code?: string;
+        photo_url?: string;
+      };
+      start_param?: string;
+      auth_date: number;
+      hash: string;
     };
-    start_param?: string;
-    auth_date: number;
-    hash: string;
+    initData: string;
   };
-  initData: string;
 }
 
 declare global {
   interface Window {
-    Telegram: {
-      WebApp: TelegramWebApp;
-    }
+    Telegram: TelegramWebApps;
   }
 }
 
-export type { TelegramWebApp };
+export type { TelegramWebApps };
 
 function App() {
   const [theme, setTheme] = useState<'light' | 'dark'>(

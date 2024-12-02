@@ -100,11 +100,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
         size: file.size,
       }]);
     } catch (error) {
-      if (error instanceof StorageError) {
-        console.error('Storage error:', error.message);
-      } else {
-        console.error('Error uploading file:', error);
-      }
+      console.error('Error uploading file:', error);
     }
   };
 
