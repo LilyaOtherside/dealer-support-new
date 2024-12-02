@@ -31,7 +31,7 @@ interface Request {
   updated_at?: string;
 }
 
-interface FileOptions {
+interface StorageFileOptions {
   onUploadProgress?: (progress: number) => void;
 }
 
@@ -91,7 +91,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
           onUploadProgress: (progress: number) => {
             setUploadProgress(progress);
           }
-        } as any);
+        } as StorageFileOptions);
 
       if (uploadData) {
         const { data: { publicUrl } } = supabase.storage
