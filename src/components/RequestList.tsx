@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -39,10 +39,6 @@ export function RequestList({
 
   const handleStatusChange = async (requestId: string, newStatus: Request['status']) => {
     await onUpdateRequest(requestId, { status: newStatus });
-  };
-
-  const handlePriorityChange = async (requestId: string, newPriority: Request['priority']) => {
-    await onUpdateRequest(requestId, { priority: newPriority });
   };
 
   const handleDelete = async (requestId: string) => {
@@ -164,7 +160,7 @@ export function RequestList({
       {showNewRequestDialog && (
         <RequestDialog
           onClose={() => setShowNewRequestDialog(false)}
-          onSubmit={async (data) => {
+          onSubmit={async (data: Omit<Request, 'id' | 'created_at' | 'updated_at'>) => {
             if (onCreateRequest) {
               await onCreateRequest(data);
               setShowNewRequestDialog(false);
@@ -177,7 +173,7 @@ export function RequestList({
         <RequestDialog
           request={selectedRequest}
           onClose={() => setSelectedRequest(null)}
-          onSubmit={async (data) => {
+          onSubmit={async (data: Omit<Request, 'id' | 'created_at' | 'updated_at'>) => {
             await onUpdateRequest(selectedRequest.id, data);
             setSelectedRequest(null);
           }}

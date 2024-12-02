@@ -21,6 +21,20 @@ import { Textarea } from './ui/textarea';
 import { Paperclip, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+interface Request {
+  id?: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'in-progress' | 'resolved';
+  priority: 'low' | 'medium' | 'high';
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface FileOptions {
+  onUploadProgress?: (progress: number) => void;
+}
+
 interface UploadedFile {
   name: string;
   url: string;
@@ -30,31 +44,33 @@ interface UploadedFile {
 
 interface RequestDialogProps {
   onClose: () => void;
-  onSubmit: (data: Request) => Promise<void>;
+  onSubmit: (data: Omit<Request, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
   request?: Request;
 }
 
 export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('pending');
-  const [priority, setPriority] = useState('medium');
+  const [title, setTitle] = useState(request?.title || '');
+  const [description, setDescription] = useState(request?.description || '');
+  const [status, setStatus] = useState<Request['status']>(request?.status || 'pending');
+  const [priority, setPriority] = useState<Request['priority']>(request?.priority || 'medium');
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
       if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
         throw new Error('User not authenticated');
       }
 
       await onSubmit({
-        title: values.title,
-        description: values.description,
-        status: 'pending',
-        priority: values.priority || 'medium'
+        title,
+        description,
+        status,
+        priority
       });
       
+      onClose();
     } catch (error) {
       console.error('Error submitting request:', error);
       throw error;
@@ -66,24 +82,26 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     formData.append('file', file);
     
     try {
-      const response = await supabase.storage
+      const { data: uploadData } = await supabase.storage
         .from('files')
         .upload(`${Date.now()}-${file.name}`, formData, {
           onUploadProgress: (progress: number) => {
             setUploadProgress(progress);
           }
-        });
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('files')
-        .getPublicUrl(`${Date.now()}-${file.name}`);
+        } as FileOptions);
 
-      setUploadedFiles(prev => [...prev, {
-        name: file.name,
-        url: publicUrl,
-        type: file.type,
-        size: file.size,
-      }]);
+      if (uploadData) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('files')
+          .getPublicUrl(`${Date.now()}-${file.name}`);
+
+        setUploadedFiles(prev => [...prev, {
+          name: file.name,
+          url: publicUrl,
+          type: file.type,
+          size: file.size,
+        }]);
+      }
     } catch (error) {
       console.error('Error uploading file:', error);
     }
