@@ -20,7 +20,7 @@ import {
 import { Textarea } from './ui/textarea';
 import { Paperclip, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { FileOptions, StorageError } from '@supabase/storage-js';
+import { FileOptions } from '@supabase/storage-js';
 
 interface Request {
   id?: string;
@@ -77,31 +77,35 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     }
   };
 
-  const handleFileUpload: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    try {
-      const { data: uploadData, error } = await supabase.storage
-        .from('files')
-        .upload(`${Date.now()}-${file.name}`, file);
+    const uploadFile = async () => {
+      try {
+        const { data: uploadData, error } = await supabase.storage
+          .from('files')
+          .upload(`${Date.now()}-${file.name}`, file);
 
-      if (error) throw error;
-      if (!uploadData) throw new Error('Upload failed');
+        if (error) throw error;
+        if (!uploadData) throw new Error('Upload failed');
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('files')
-        .getPublicUrl(uploadData.path);
+        const { data: { publicUrl } } = supabase.storage
+          .from('files')
+          .getPublicUrl(uploadData.path);
 
-      setUploadedFiles(prev => [...prev, {
-        name: file.name,
-        url: publicUrl,
-        type: file.type,
-        size: file.size,
-      }]);
-    } catch (error) {
-      console.error('Error uploading file:', error);
-    }
+        setUploadedFiles(prev => [...prev, {
+          name: file.name,
+          url: publicUrl,
+          type: file.type,
+          size: file.size,
+        }]);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+    };
+
+    uploadFile();
   };
 
   const removeAttachment = (index: number) => {
@@ -151,7 +155,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="status">Status</Label>
                 <Select 
                   value={status} 
-                  onValueChange={(value: RequestStatus) => setStatus(value)}
+                  onValueChange={(value) => setStatus(value as RequestStatus)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -167,7 +171,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="priority">Priority</Label>
                 <Select 
                   value={priority} 
-                  onValueChange={(value: RequestPriority) => setPriority(value)}
+                  onValueChange={(value) => setPriority(value as RequestPriority)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
