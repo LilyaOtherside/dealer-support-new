@@ -35,6 +35,7 @@ declare global {
           };
           start_param?: string;
           auth_date: number;
+          hash: string;
         };
         initData: string;
       }

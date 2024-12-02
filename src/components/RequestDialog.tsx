@@ -76,42 +76,38 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     }
   };
 
-  const handleFileUpload: React.ChangeEventHandler<HTMLInputElement> = async (event) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    try {
-      const { data: uploadData } = await supabase.storage
-        .from('files')
-        .upload(`${Date.now()}-${file.name}`, file, {
-          onUploadProgress: (progress: number) => {
-            setUploadProgress(progress);
-          }
-        } as any);
-
-      if (uploadData) {
-        const { data: { publicUrl } } = supabase.storage
+    const uploadFile = async () => {
+      try {
+        const { data: uploadData } = await supabase.storage
           .from('files')
-          .getPublicUrl(uploadData.path);
+          .upload(`${Date.now()}-${file.name}`, file, {
+            onUploadProgress: (progress: number) => {
+              setUploadProgress(progress);
+            }
+          } as any);
 
-        setUploadedFiles(prev => [...prev, {
-          name: file.name,
-          url: publicUrl,
-          type: file.type,
-          size: file.size,
-        }]);
+        if (uploadData) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('files')
+            .getPublicUrl(uploadData.path);
+
+          setUploadedFiles(prev => [...prev, {
+            name: file.name,
+            url: publicUrl,
+            type: file.type,
+            size: file.size,
+          }]);
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
       }
-    } catch (error) {
-      console.error('Error uploading file:', error);
-    }
-  };
+    };
 
-  const handleStatusChange = (value: string) => {
-    setStatus(value as RequestStatus);
-  };
-
-  const handlePriorityChange = (value: string) => {
-    setPriority(value as RequestPriority);
+    uploadFile();
   };
 
   const removeAttachment = (index: number) => {
@@ -161,7 +157,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="status">Status</Label>
                 <Select 
                   value={status} 
-                  onValueChange={handleStatusChange}
+                  onValueChange={(value: string) => setStatus(value as RequestStatus)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -177,7 +173,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="priority">Priority</Label>
                 <Select 
                   value={priority} 
-                  onValueChange={handlePriorityChange}
+                  onValueChange={(value: string) => setPriority(value as RequestPriority)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
@@ -192,63 +188,49 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
             </div>
             <div className="space-y-2">
               <Label>Attachments</Label>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById('file-upload')?.click()}
-                    className="w-full"
-                  >
-                    <Paperclip className="w-4 h-4 mr-2" />
-                    Add Files
-                  </Button>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    multiple
-                    className="hidden"
-                    onChange={handleFileUpload}
-                  />
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              {uploadProgress > 0 && (
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
                 </div>
-                {uploadProgress > 0 && (
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+              )}
+              {uploadedFiles.length > 0 && (
+                <div className="space-y-2">
+                  {uploadedFiles.map((file, index) => (
                     <div
-                      className="bg-blue-600 h-2.5 rounded-full"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                  </div>
-                )}
-                {uploadedFiles.length > 0 && (
-                  <div className="space-y-2">
-                    {uploadedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <Paperclip className="w-4 h-4" />
-                          <div>
-                            <div className="text-sm font-medium">{file.name}</div>
-                            <div className="text-xs text-gray-500">
-                              {formatFileSize(file.size)}
-                            </div>
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Paperclip className="w-4 h-4" />
+                        <div>
+                          <div className="text-sm font-medium">{file.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {formatFileSize(file.size)}
                           </div>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeAttachment(index)}
-                          className="h-8 w-8"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeAttachment(index)}
+                        className="h-8 w-8"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
