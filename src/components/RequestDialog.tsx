@@ -20,7 +20,6 @@ import {
 import { Textarea } from './ui/textarea';
 import { Paperclip, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { FileOptions } from '@supabase/storage-js';
 
 interface Request {
   id?: string;
@@ -30,11 +29,6 @@ interface Request {
   priority: 'low' | 'medium' | 'high';
   created_at?: string;
   updated_at?: string;
-}
-
-// Создаем свой тип для опций загрузки файла
-interface UploadOptions {
-  onUploadProgress?: (progress: number) => void;
 }
 
 interface UploadedFile {
@@ -84,15 +78,13 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     if (!file) return;
 
     try {
-      const options: UploadOptions = {
-        onUploadProgress: (progress: number) => {
-          setUploadProgress(progress);
-        }
-      };
-
       const { data: uploadData } = await supabase.storage
         .from('files')
-        .upload(`${Date.now()}-${file.name}`, file, options as any);
+        .upload(`${Date.now()}-${file.name}`, file, {
+          onUploadProgress: (progress: number) => {
+            setUploadProgress(progress);
+          }
+        } as any);
 
       if (uploadData) {
         const { data: { publicUrl } } = supabase.storage
@@ -158,9 +150,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="status">Status</Label>
                 <Select 
                   value={status} 
-                  onValueChange={(value: string) => {
-                    setStatus(value as Request['status']);
-                  }}
+                  onValueChange={(value) => setStatus(value as Request['status'])}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
@@ -176,9 +166,7 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
                 <Label htmlFor="priority">Priority</Label>
                 <Select 
                   value={priority} 
-                  onValueChange={(value: string) => {
-                    setPriority(value as Request['priority']);
-                  }}
+                  onValueChange={(value) => setPriority(value as Request['priority'])}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
