@@ -20,6 +20,7 @@ import {
 import { Textarea } from './ui/textarea';
 import { Paperclip, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { FileOptions } from '@supabase/storage-js';
 
 interface Request {
   id?: string;
@@ -29,10 +30,6 @@ interface Request {
   priority: 'low' | 'medium' | 'high';
   created_at?: string;
   updated_at?: string;
-}
-
-interface StorageFileOptions {
-  onUploadProgress?: (progress: number) => void;
 }
 
 interface UploadedFile {
@@ -81,22 +78,19 @@ export function RequestDialog({ onClose, onSubmit, request }: RequestDialogProps
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-    
     try {
       const { data: uploadData } = await supabase.storage
         .from('files')
-        .upload(`${Date.now()}-${file.name}`, formData, {
+        .upload(`${Date.now()}-${file.name}`, file, {
           onUploadProgress: (progress: number) => {
             setUploadProgress(progress);
           }
-        } as StorageFileOptions);
+        } satisfies FileOptions);
 
       if (uploadData) {
         const { data: { publicUrl } } = supabase.storage
           .from('files')
-          .getPublicUrl(`${Date.now()}-${file.name}`);
+          .getPublicUrl(uploadData.path);
 
         setUploadedFiles(prev => [...prev, {
           name: file.name,
